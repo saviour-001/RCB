@@ -1,76 +1,68 @@
 #include <stdio.h>
 
 struct Process {
-    int id, bt, wt, tat, at;
+    int id,at,bt,completion_time,wt,tat,is_completed;
 };
 
-void calculatewt(struct Process processes[], int n) {
-    processes[0].wt = 0; 
-
-    for (int i = 1; i < n; i++) {
-        processes[i].wt = processes[i - 1].wt + processes[i - 1].bt - processes[i].at;
-        
-        if (processes[i].wt < 0) {
-            processes[i].wt = 0;
-        }
-    }
-}
-
-void calculatetat(struct Process processes[], int n) {
-    for (int i = 0; i < n; i++) {
-        processes[i].tat = processes[i].wt + processes[i].bt;
-    }
-}
-
-void sortProcessesByat(struct Process processes[], int n) {
-    for (int i = 0; i < n - 1; i++) {
-        for (int j = i + 1; j < n; j++) {
-            if (processes[i].at > processes[j].at) {
-                struct Process temp = processes[i];
-                processes[i] = processes[j];
-                processes[j] = temp;
-            }
-        }
-    }
-}
-
-void displayProcesses(struct Process processes[], int n) {
-    printf("Process ID\tArrival Time\tBurst Time\tWaiting Time\tTurnaround Time\n");
-    for (int i = 0; i < n; i++) {
-        printf("%d\t\t%d\t\t%d\t\t%d\t\t%d\n", processes[i].id, processes[i].at,
-               processes[i].bt, processes[i].wt, processes[i].tat);
-    }
-}
-
 int main() {
-    int n;
+    int n, i, j, completed = 0, current_time = 0;
+    float total_wt = 0, total_tat = 0;
+
     printf("Enter the number of processes: ");
     scanf("%d", &n);
 
     struct Process processes[n];
 
-    for (int i = 0; i < n; i++) {
+    printf("Enter Arrival Time and Burst Time for each process:\n");
+    for (i = 0; i < n; i++) {
         processes[i].id = i + 1;
-        printf("Enter arrival time for process %d: ", processes[i].id);
+        printf("Process %d:\n", processes[i].id);
+        printf("Arrival Time: ");
         scanf("%d", &processes[i].at);
-        printf("Enter burst time for process %d: ", processes[i].id);
+        printf("Burst Time: ");
         scanf("%d", &processes[i].bt);
+        processes[i].is_completed = 0; 
     }
 
-    sortProcessesByat(processes, n);
+    while (completed < n) {
+        int shortest_job = -1;
+        int min_bt = __INT_MAX__; 
 
-    calculatewt(processes, n);
-    calculatetat(processes, n);
+        for (i = 0; i < n; i++) {
+            if (processes[i].at <= current_time && !processes[i].is_completed) {
+                if (processes[i].bt < min_bt ||
+                    (processes[i].bt == min_bt && processes[i].at < processes[shortest_job].at)) {
+                    min_bt = processes[i].bt;
+                    shortest_job = i;
+                }
+            }
+        }
 
-    displayProcesses(processes, n);
+        if (shortest_job == -1) {
+            current_time++;
+        } else {
+            current_time += processes[shortest_job].bt;
+            processes[shortest_job].completion_time = current_time;
+            processes[shortest_job].tat =
+                processes[shortest_job].completion_time - processes[shortest_job].at;
+            processes[shortest_job].wt =
+                processes[shortest_job].tat - processes[shortest_job].bt;
 
-    float totalwt = 0, totaltat = 0;
-    for (int i = 0; i < n; i++) {
-        totalwt += processes[i].wt;
-        totaltat += processes[i].tat;
+            processes[shortest_job].is_completed = 1;
+            completed++;
+
+            total_wt += processes[shortest_job].wt;
+            total_tat += processes[shortest_job].tat;
+        }
     }
-    printf("\nAverage Waiting Time: %.2f\n", totalwt / n);
-    printf("Average Turnaround Time: %.2f\n", totaltat / n);
+
+    printf("\nProcess\tArrival Time\tBurst Time\tCompletion Time\tWaiting Time\tTurnaround Time\n");
+    for (i = 0; i < n; i++) {
+        printf("P%d\t%d\t\t%d\t\t%d\t\t%d\t\t%d\n",processes[i].id,processes[i].at,processes[i].bt,processes[i].completion_time,processes[i].wt,processes[i].tat);
+    }
+
+    printf("\nAverage Waiting Time: %.2f\n", total_wt / n);
+    printf("Average Turnaround Time: %.2f\n", total_tat / n);
 
     return 0;
 }

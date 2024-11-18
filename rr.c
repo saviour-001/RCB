@@ -1,106 +1,63 @@
 #include <stdio.h>
 
 struct Process {
-    int pid,at,bt,remainingTime,wt,tat;
+    int id,at,bt,remaining_time,wt,tat,completion_time;
 };
 
-void sortByat(struct Process proc[], int n) {
-    int i, j;
-    for (i = 0; i < n - 1; i++) {
-        for (j = i + 1; j < n; j++) {
-            if (proc[i].at > proc[j].at) {
-                struct Process temp = proc[i];
-                proc[i] = proc[j];
-                proc[j] = temp;
-            }
-        }
-    }
-}
-
-void calculateRoundRobin(struct Process proc[], int n, int quantum) {
-    int i;
-    int currentTime = 0;
-    int completed = 0;
-    float totalwt = 0, totaltat = 0;
-    int queue[n], front = 0, rear = 0;
-
-    for (i = 0; i < n; i++) {
-        queue[rear++] = i; 
-    }
-
-    while (completed != n) {
-        int idx = queue[front++];
-        if (front == n) front = 0; 
-
-        if (proc[idx].remainingTime > quantum) {
-            proc[idx].remainingTime -= quantum;
-            currentTime += quantum;
-        } else {
-            currentTime += proc[idx].remainingTime;
-            proc[idx].remainingTime = 0;
-            completed++;
-            
-            proc[idx].wt = currentTime - proc[idx].at - proc[idx].bt;
-            proc[idx].tat = currentTime - proc[idx].at;
-
-            totalwt += proc[idx].wt;
-            totaltat += proc[idx].tat;
-        }
-
-        for (i = 0; i < n; i++) {
-            if (proc[i].at <= currentTime && proc[i].remainingTime > 0 && !isInQueue(queue, front, rear, i)) {
-                queue[rear++] = i;
-                if (rear == n) rear = 0; 
-            }
-        }
-
-        if (proc[idx].remainingTime > 0) {
-            queue[rear++] = idx;
-            if (rear == n) rear = 0; 
-        }
-    }
-
-    printf("PID\tArrival Time\tBurst Time\tWaiting Time\tTurnaround Time\n");
-    for (i = 0; i < n; i++) {
-        printf("%d\t%d\t\t%d\t\t%d\t\t%d\n", proc[i].pid, proc[i].at, proc[i].bt, proc[i].wt, proc[i].tat);
-    }
-
-    printf("Average Waiting Time: %.2f\n", totalwt / n);
-    printf("Average Turnaround Time: %.2f\n", totaltat / n);
-}
-
-int isInQueue(int queue[], int front, int rear, int pid) {
-    for (int i = front; i != rear; i = (i + 1) % rear) {
-        if (queue[i] == pid) return 1;
-    }
-    return 0;
-}
-
 int main() {
-    int n;
-    int quantum;
-    int i;
+    int n, i, time_quantum, current_time = 0, completed = 0;
+    float total_wt = 0, total_tat = 0;
 
     printf("Enter the number of processes: ");
     scanf("%d", &n);
 
-    printf("Enter the time quantum: ");
-    scanf("%d", &quantum);
+    struct Process processes[n];
 
-    struct Process proc[n];
+    printf("Enter Arrival Time and Burst Time for each process:\n");
     for (i = 0; i < n; i++) {
-        proc[i].pid = i + 1;
-        printf("Enter arrival time and burst time for process %d: ", i + 1);
-        scanf("%d %d", &proc[i].at, &proc[i].bt);
-        proc[i].remainingTime = proc[i].bt; 
-        proc[i].wt = 0;
-        proc[i].tat = 0;
+        processes[i].id = i + 1; 
+        printf("Process %d:\n", processes[i].id);
+        printf("Arrival Time: ");
+        scanf("%d", &processes[i].at);
+        printf("Burst Time: ");
+        scanf("%d", &processes[i].bt);
+        processes[i].remaining_time = processes[i].bt; 
+        processes[i].wt = 0;
     }
 
-    sortByat(proc, n);
-    calculateRoundRobin(proc, n, quantum);
+    printf("Enter the time quantum: ");
+    scanf("%d", &time_quantum);
+
+    while (completed < n) {
+        for (i = 0; i < n; i++) {
+            if (processes[i].remaining_time > 0 && processes[i].at <= current_time) {
+                if (processes[i].remaining_time > time_quantum) {
+                    current_time += time_quantum;
+                    processes[i].remaining_time -= time_quantum;
+                } else {
+                    current_time += processes[i].remaining_time;
+                    processes[i].remaining_time = 0;
+
+                    processes[i].completion_time = current_time;
+                    processes[i].tat = processes[i].completion_time - processes[i].at;
+                    processes[i].wt = processes[i].tat - processes[i].bt;
+
+                    total_wt += processes[i].wt;
+                    total_tat += processes[i].tat;
+
+                    completed++;
+                }
+            }
+        }
+    }
+
+    printf("\nProcess\tArrival Time\tBurst Time\tCompletion Time\tWaiting Time\tTurnaround Time\n");
+    for (i = 0; i < n; i++) {
+        printf("P%d\t%d\t\t%d\t\t%d\t\t%d\t\t%d\n",processes[i].id, processes[i].at, processes[i].bt,processes[i].completion_time, processes[i].wt, processes[i].tat);
+    }
+
+    printf("\nAverage Waiting Time: %.2f\n", total_wt / n);
+    printf("Average Turnaround Time: %.2f\n", total_tat / n);
 
     return 0;
 }
-
-

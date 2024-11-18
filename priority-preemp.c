@@ -1,72 +1,84 @@
 #include <stdio.h>
 
 struct Process {
-    int pid,bt,at,priority,remainingTime,completionTime;
-    int wt,tat,isCompleted;     
+    int id,at,bt,remainingTime,priority,wt,tat;
 };
 
-
-int findHighestPriorityProcess(struct Process processes[], int n, int currentTime) {
-    int maxPriorityIndex = -1;
+int findHighestPriorityProcess(struct Process proc[], int n, int currentTime) {
+    int highestPriorityIndex = -1;
+    int highestPriority = 10000; 
+    
     for (int i = 0; i < n; i++) {
-        if (processes[i].at <= currentTime && processes[i].isCompleted == 0) {
-            if (maxPriorityIndex == -1 || processes[i].priority > processes[maxPriorityIndex].priority) {
-                maxPriorityIndex = i;
+        if (proc[i].at <= currentTime && proc[i].remainingTime > 0) {
+            if (proc[i].priority < highestPriority) {
+                highestPriority = proc[i].priority;
+                highestPriorityIndex = i;
+            }
+            else if (proc[i].priority == highestPriority) {
+                if (proc[i].at < proc[highestPriorityIndex].at) {
+                    highestPriorityIndex = i;
+                }
             }
         }
     }
-    return maxPriorityIndex;
+    return highestPriorityIndex;
 }
 
 int main() {
-    int n;
+    int n, totalTime = 0, completed = 0;
+    float avgwt = 0, avgtat = 0;
+
     printf("Enter the number of processes: ");
     scanf("%d", &n);
+    struct Process proc[n];
 
-    struct Process processes[n];  
-
+    // Input process details
     for (int i = 0; i < n; i++) {
-        processes[i].pid = i + 1;
-        printf("\nEnter burst time, arrival time, and priority for Process %d: ", i + 1);
-        scanf("%d %d %d", &processes[i].bt, &processes[i].at, &processes[i].priority);
-        processes[i].remainingTime = processes[i].bt;
-        processes[i].isCompleted = 0; 
+        printf("\nEnter details for process %d:\n", i + 1);
+        proc[i].id = i + 1;
+        printf("enter Arrival Time for process %d : ",i+1);
+        scanf("%d", &proc[i].at);
+        printf("enter Burst Time for process %d : ",i+1);
+        scanf("%d", &proc[i].bt);
+        printf("enter Priority for process %d ",i+1);
+        scanf("%d", &proc[i].priority);
+
+        proc[i].remainingTime = proc[i].bt;
+        proc[i].wt = 0;
+        proc[i].tat = 0;
     }
 
-    int currentTime = 0, completed = 0;
-    float totalwt = 0, totaltat = 0;
-
-    while (completed < n) {
-        int p_index = findHighestPriorityProcess(processes, n, currentTime);
-
-        if (p_index == -1) { 
+    int currentTime = 0;
+    while (completed != n) {
+        int highestPriorityIndex = findHighestPriorityProcess(proc, n, currentTime);
+        if (highestPriorityIndex == -1) {
             currentTime++;
-        } else {
-            processes[p_index].remainingTime--;
-            currentTime++;
+            continue;
+        }
+        
+        proc[highestPriorityIndex].remainingTime--;
+        currentTime++;
 
-            if (processes[p_index].remainingTime == 0) {
-                processes[p_index].isCompleted = 1;  
-                completed++;
+        if (proc[highestPriorityIndex].remainingTime == 0) {
+            completed++;
+            proc[highestPriorityIndex].tat = currentTime - proc[highestPriorityIndex].at;
+            proc[highestPriorityIndex].wt = proc[highestPriorityIndex].tat - proc[highestPriorityIndex].bt;
 
-                processes[p_index].completionTime = currentTime;
-                processes[p_index].tat = processes[p_index].completionTime - processes[p_index].at;
-                processes[p_index].wt = processes[p_index].tat - processes[p_index].bt;
-
-                totalwt += processes[p_index].wt;
-                totaltat += processes[p_index].tat;
-            }
+            avgwt += proc[highestPriorityIndex].wt;
+            avgtat += proc[highestPriorityIndex].tat;
         }
     }
 
-    printf("\nProcess\tBurst Time\tArrival Time\tPriority\tWaiting Time\tTurnaround Time");
+    avgwt /= n;
+    avgtat /= n;
+
+    printf("\nProcess ID\tArrival Time\tBurst Time\tPriority\tWaiting Time\tTurnaround Time\n");
     for (int i = 0; i < n; i++) {
-        printf("\n%d\t%d\t\t%d\t\t%d\t\t%d\t\t%d", processes[i].pid, processes[i].bt, processes[i].at,
-               processes[i].priority, processes[i].wt, processes[i].tat);
+        printf("%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t%d\n",proc[i].id,proc[i].at,proc[i].bt,proc[i].priority,proc[i].wt,proc[i].tat);
     }
 
-    printf("\n\nAverage Waiting Time: %.2f", totalwt / n);
-    printf("\nAverage Turnaround Time: %.2f\n", totaltat / n);
+    printf("\nAverage Waiting Time: %.2f", avgwt);
+    printf("\nAverage Turnaround Time: %.2f\n", avgtat);
 
     return 0;
 }

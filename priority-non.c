@@ -1,83 +1,66 @@
 #include <stdio.h>
 
 struct Process {
-    int pid;
-    int at;
-    int burstTime;
-    int priority;
-    int waitingTime;
-    int turnAroundTime;
-    int completed;
+    int id,at,bt,priority,wt,tat,completion_time;
 };
 
-void sortbyArrivaltimes(struct Process proc[], int n) {
-    int i, j;
-    for (i = 0; i < n - 1; i++) {
-        for (j = i + 1; j < n; j++) {
-            if (proc[i].at > proc[j].at) {
-                struct Process temp = proc[i];
-                proc[i] = proc[j];
-                proc[j] = temp;
-            }
-        }
-    }
-}
-
-void calculateNonPreemptivePriority(struct Process proc[], int n) {
-    int completed = 0, currentTime = 0;
-    float totalWaitingTime = 0, totalTurnAroundTime = 0;
-
-    while (completed < n) {
-        int idx = -1;
-        int highestPriority = 2147483647;
-        for (int i = 0; i < n; i++) {
-            if (proc[i].at <= currentTime && !proc[i].completed && proc[i].priority < highestPriority) {
-                highestPriority = proc[i].priority;
-                idx = i;
-            }
-        }
-
-        if (idx != -1) {
-            proc[idx].waitingTime = currentTime - proc[idx].at;
-            proc[idx].turnAroundTime = proc[idx].waitingTime + proc[idx].burstTime;
-            currentTime += proc[idx].burstTime;
-            proc[idx].completed = 1;
-            completed++;
-
-            totalWaitingTime += proc[idx].waitingTime;
-            totalTurnAroundTime += proc[idx].turnAroundTime;
-        } else {
-            currentTime++;
-        }
-    }
-
-    printf("PID\tArrival Time\tBurst Time\tPriority\tWaiting Time\tTurnaround Time\n");
-    for (int i = 0; i < n; i++) {
-        printf("%d\t%d\t\t%d\t\t%d\t\t%d\t\t%d\n", proc[i].pid, proc[i].at, proc[i].burstTime, proc[i].priority, proc[i].waitingTime, proc[i].turnAroundTime);
-    }
-
-    printf("Average Waiting Time: %.2f\n", totalWaitingTime / n);
-    printf("Average Turnaround Time: %.2f\n", totalTurnAroundTime / n);
-}
-
 int main() {
-    int n;
+    int n, i, j;
+    float total_wt = 0, total_tat = 0;
+
     printf("Enter the number of processes: ");
     scanf("%d", &n);
 
-    struct Process proc[n];
-    for (int i = 0; i < n; i++) {
-        proc[i].pid = i + 1;
-        printf("Enter arrival time, burst time and priority for process %d: ", i + 1);
-        scanf("%d %d %d", &proc[i].at, &proc[i].burstTime, &proc[i].priority);
-        proc[i].completed = 0;
+    struct Process processes[n];
+
+    printf("Enter Arrival Time, Burst Time, and Priority for each process:\n");
+    for (i = 0; i < n; i++) {
+        processes[i].id = i + 1; 
+        printf("Process %d:\n", processes[i].id);
+        printf("Arrival Time: ");
+        scanf("%d", &processes[i].at);
+        printf("Burst Time: ");
+        scanf("%d", &processes[i].bt);
+        printf("Priority (lower value = higher priority): ");
+        scanf("%d", &processes[i].priority);
     }
 
-    sortbyArrivaltimes(proc, n);
-    calculateNonPreemptivePriority(proc, n);
+    for (i = 0; i < n - 1; i++) {
+        for (j = 0; j < n - i - 1; j++) {
+            if (processes[j].priority > processes[j + 1].priority ||(processes[j].priority == processes[j + 1].priority && processes[j].at > processes[j + 1].at)) {
+                struct Process temp = processes[j];
+                processes[j] = processes[j + 1];
+                processes[j + 1] = temp;
+            }
+        }
+    }
+
+    int current_time = 0;
+
+    for (i = 0; i < n; i++) {
+        if (current_time < processes[i].at) {
+            current_time = processes[i].at;
+        }
+
+        processes[i].completion_time = current_time + processes[i].bt;
+        processes[i].tat = processes[i].completion_time - processes[i].at;
+        processes[i].wt = processes[i].tat - processes[i].bt;
+
+        current_time = processes[i].completion_time;
+
+        total_wt += processes[i].wt;
+        total_tat += processes[i].tat;
+    }
+
+    printf("\nProcess\tArrival Time\tBurst Time\tPriority\tCompletion Time\tWaiting Time\tTurnaround Time\n");
+    for (i = 0; i < n; i++) {
+        printf("P%d\t%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t%d\n",
+               processes[i].id, processes[i].at, processes[i].bt, processes[i].priority,
+               processes[i].completion_time, processes[i].wt, processes[i].tat);
+    }
+
+    printf("\nAverage Waiting Time: %.2f\n", total_wt / n);
+    printf("Average Turnaround Time: %.2f\n", total_tat / n);
 
     return 0;
 }
-
-
-
