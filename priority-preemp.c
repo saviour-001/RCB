@@ -32,7 +32,6 @@ int main() {
     scanf("%d", &n);
     struct Process proc[n];
 
-    // Input process details
     for (int i = 0; i < n; i++) {
         printf("\nEnter details for process %d:\n", i + 1);
         proc[i].id = i + 1;
