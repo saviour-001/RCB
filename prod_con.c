@@ -2,83 +2,90 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <semaphore.h>
-#include <unistd.h>
 
-#define BUFFER_SIZE 10
-#define PRODUCER_COUNT 2
-#define CONSUMER_COUNT 2
+#define BUFFER_SIZE 3
 
-int buffer[BUFFER_SIZE];
-int count = 0;
-
-pthread_mutex_t mutex;
+int buffer[BUFFER_SIZE]; 
+int in = 0;
+int out = 0;
 sem_t empty;
-sem_t full;
+sem_t full;   
+pthread_mutex_t mutex; 
 
-void* producer(void* param);
-void* consumer(void* param);
+void *producer(void *arg);
+void *consumer(void *arg);
 
 int main() {
-    pthread_t producers[PRODUCER_COUNT];
-    pthread_t consumers[CONSUMER_COUNT];
+    int choice;
+    pthread_t prodThread, consThread;
 
-    pthread_mutex_init(&mutex, NULL);
     sem_init(&empty, 0, BUFFER_SIZE);
     sem_init(&full, 0, 0);
+    pthread_mutex_init(&mutex, NULL);
+    printf("1. Press 1 for Producer\n");
+    printf("2. Press 2 for Consumer\n");
+    printf("3. Press 3 for Exit\n");
 
-    for (int i = 0; i < PRODUCER_COUNT; i++) {
-        pthread_create(&producers[i], NULL, producer, NULL);
+    while (1) {
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        if (choice == 1) {
+            pthread_create(&prodThread, NULL, producer, NULL);
+            pthread_join(prodThread, NULL);
+        } else if (choice == 2) {
+            int fullValue;
+            sem_getvalue(&full, &fullValue); 
+            if (fullValue == 0) {
+                printf("Buffer is empty!\n");
+            } else {
+                pthread_create(&consThread, NULL, consumer, NULL);
+                pthread_join(consThread, NULL);
+            }
+        } else if (choice == 3) {
+            printf("Exiting...\n");
+            break;
+        } else {
+            printf("Invalid choice! Please try again.\n");
+        }
     }
 
-    for (int i = 0; i < CONSUMER_COUNT; i++) {
-        pthread_create(&consumers[i], NULL, consumer, NULL);
-    }
-
-    for (int i = 0; i < PRODUCER_COUNT; i++) {
-        pthread_join(producers[i], NULL);
-    }
-    for (int i = 0; i < CONSUMER_COUNT; i++) {
-        pthread_join(consumers[i], NULL);
-    }
-
-    pthread_mutex_destroy(&mutex);
     sem_destroy(&empty);
     sem_destroy(&full);
+    pthread_mutex_destroy(&mutex);
 
     return 0;
 }
 
-void* producer(void* param) {
-    int item;
-    while (1) {
-        item = rand() % 100;
-        sem_wait(&empty);
-        pthread_mutex_lock(&mutex);
+void *producer(void *arg) {
+    static int item = 0; 
 
-        buffer[count++] = item;
-        printf("Produced: %d\n", item);
+    sem_wait(&empty); 
+    pthread_mutex_lock(&mutex); 
 
-        pthread_mutex_unlock(&mutex);
-        sem_post(&full);
+    item++; 
+    buffer[in] = item;
+    printf("Producer produces item %d\n", item);
+    in = (in + 1) % BUFFER_SIZE;
 
-        sleep(1);
-    }
+    pthread_mutex_unlock(&mutex); 
+    sem_post(&full); 
+
     return NULL;
 }
 
-void* consumer(void* param) {
-    int item;
-    while (1) {
-        sem_wait(&full);
-        pthread_mutex_lock(&mutex);
+void *consumer(void *arg) {
+    sem_wait(&full); 
+    pthread_mutex_lock(&mutex); 
 
-        item = buffer[--count];
-        printf("Consumed: %d\n", item);
+    int item = buffer[out];
+    printf("Consumer consumes item %d\n", item);
+    out = (out + 1) % BUFFER_SIZE;
 
-        pthread_mutex_unlock(&mutex);  
-        sem_post(&empty);  
+    pthread_mutex_unlock(&mutex); 
+    sem_post(&empty); 
 
-        sleep(1);
-    }
     return NULL;
 }
+
+
