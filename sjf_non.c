@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <limits.h>
 
 struct Process {
     int id,at,bt,completion_time,wt,tat,is_completed;
