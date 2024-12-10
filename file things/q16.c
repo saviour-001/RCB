@@ -4,7 +4,6 @@
 int main() {
     char inputFilename[100], outputFilename1[100], outputFilename2[100];
     
-    // Prompt for file names
     printf("Enter the name of the input file: ");
     scanf("%s", inputFilename);
     printf("Enter the name of the first output file: ");
@@ -36,20 +35,17 @@ int main() {
     char ch;
     int lineCount = 0;
 
-    // Calculate total number of lines
     while ((ch = fgetc(inputFile)) != EOF) {
         if (ch == '\n') {
             lineCount++;
         }
     }
 
-    // Reset file pointer to the beginning of the file
     rewind(inputFile);
 
     int currentLine = 0;
-    int halfLineCount = (lineCount + 1) / 2; // Ensure the first file gets the extra line if there's an odd number of lines
+    int halfLineCount = (lineCount + 1) / 2;
 
-    // Write to the first output file
     while (currentLine < halfLineCount && (ch = fgetc(inputFile)) != EOF) {
         fputc(ch, outputFile1);
         if (ch == '\n') {
@@ -57,7 +53,6 @@ int main() {
         }
     }
 
-    // Write to the second output file
     while ((ch = fgetc(inputFile)) != EOF) {
         fputc(ch, outputFile2);
     }
