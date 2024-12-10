@@ -1,0 +1,72 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    char inputFilename[100], outputFilename1[100], outputFilename2[100];
+    
+    // Prompt for file names
+    printf("Enter the name of the input file: ");
+    scanf("%s", inputFilename);
+    printf("Enter the name of the first output file: ");
+    scanf("%s", outputFilename1);
+    printf("Enter the name of the second output file: ");
+    scanf("%s", outputFilename2);
+
+    FILE *inputFile = fopen(inputFilename, "r");
+    if (inputFile == NULL) {
+        printf("Error: Unable to open file %s\n", inputFilename);
+        exit(1);
+    }
+
+    FILE *outputFile1 = fopen(outputFilename1, "w");
+    if (outputFile1 == NULL) {
+        printf("Error: Unable to create output file %s\n", outputFilename1);
+        fclose(inputFile);
+        exit(1);
+    }
+
+    FILE *outputFile2 = fopen(outputFilename2, "w");
+    if (outputFile2 == NULL) {
+        printf("Error: Unable to create output file %s\n", outputFilename2);
+        fclose(inputFile);
+        fclose(outputFile1);
+        exit(1);
+    }
+
+    char ch;
+    int lineCount = 0;
+
+    // Calculate total number of lines
+    while ((ch = fgetc(inputFile)) != EOF) {
+        if (ch == '\n') {
+            lineCount++;
+        }
+    }
+
+    // Reset file pointer to the beginning of the file
+    rewind(inputFile);
+
+    int currentLine = 0;
+    int halfLineCount = (lineCount + 1) / 2; // Ensure the first file gets the extra line if there's an odd number of lines
+
+    // Write to the first output file
+    while (currentLine < halfLineCount && (ch = fgetc(inputFile)) != EOF) {
+        fputc(ch, outputFile1);
+        if (ch == '\n') {
+            currentLine++;
+        }
+    }
+
+    // Write to the second output file
+    while ((ch = fgetc(inputFile)) != EOF) {
+        fputc(ch, outputFile2);
+    }
+
+    fclose(inputFile);
+    fclose(outputFile1);
+    fclose(outputFile2);
+
+    printf("File contents have been divided into %s and %s successfully.\n", outputFilename1, outputFilename2);
+
+    return 0;
+}
