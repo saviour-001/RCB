@@ -7,7 +7,6 @@
 int main() {
     char filename[100], keyword[100];
 
-    // Prompt for the filename and keyword
     printf("Enter the file name: ");
     scanf("%s", filename);
     printf("Enter the keyword to search for: ");
@@ -22,7 +21,6 @@ int main() {
     char line[MAX_LINE_LENGTH];
     int found = 0;
 
-    // Read each line and check for the keyword
     while (fgets(line, sizeof(line), file) != NULL) {
         if (strstr(line, keyword) != NULL) {
             found = 1;
