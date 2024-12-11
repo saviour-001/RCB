@@ -22,7 +22,7 @@ int main() {
         frames[i] = -1;
     }
 
-    printf("\nPage Replacement Process (FCFS):\n");
+    printf("\nPage Replacement Process (FIFO):\n");
     for (int i = 0; i < numPages; i++) {
         isPageInFrame = 0;
 
