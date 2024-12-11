@@ -2,12 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_LINES 1000
-#define MAX_LINE_LENGTH 256
-
 int main() {
-    char lines[1000][256];
-    int lc=0;
     FILE *fp1;
     fp1=fopen("f1.txt","r");
     int words=0;
