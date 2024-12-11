@@ -1,19 +1,31 @@
 #include <stdio.h>
 
-void fcfsPageReplacement(int pages[], int numPages, int numFrames) {
-    int frames[numFrames], faults = 0, index = 0;
-    int isPageInFrame;
+int main() {
+    int numPages, numFrames;
 
-    // Initialize frames
+    printf("Enter the number of pages: ");
+    scanf("%d", &numPages);
+
+    int pages[numPages];
+
+    printf("Enter the page sequence:\n");
+    for (int i = 0; i < numPages; i++) {
+        scanf("%d", &pages[i]);
+    }
+
+    printf("Enter the number of frames: ");
+    scanf("%d", &numFrames);
+
+    int frames[numFrames], faults = 0, index = 0, isPageInFrame;
+
     for (int i = 0; i < numFrames; i++) {
         frames[i] = -1;
     }
 
-    printf("Page Replacement Process (FCFS):\n");
+    printf("\nPage Replacement Process (FCFS):\n");
     for (int i = 0; i < numPages; i++) {
         isPageInFrame = 0;
 
-        // Check if the page is already in a frame
         for (int j = 0; j < numFrames; j++) {
             if (frames[j] == pages[i]) {
                 isPageInFrame = 1;
@@ -21,14 +33,12 @@ void fcfsPageReplacement(int pages[], int numPages, int numFrames) {
             }
         }
 
-        // If the page is not in a frame, replace the oldest one
         if (!isPageInFrame) {
             frames[index] = pages[i];
             index = (index + 1) % numFrames;
             faults++;
         }
 
-        // Display the current state of frames
         printf("Page %d -> Frames: ", pages[i]);
         for (int j = 0; j < numFrames; j++) {
             if (frames[j] != -1)
@@ -40,13 +50,6 @@ void fcfsPageReplacement(int pages[], int numPages, int numFrames) {
     }
 
     printf("\nTotal Page Faults: %d\n", faults);
-}
 
-int main() {
-    int pages[] = {1, 3, 0, 3, 5, 6, 3};
-    int numPages = sizeof(pages) / sizeof(pages[0]);
-    int numFrames = 3;
-
-    fcfsPageReplacement(pages, numPages, numFrames);
     return 0;
 }
