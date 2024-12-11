@@ -7,29 +7,20 @@
 
 int main() {
     char filename[100];
-    char *lines[MAX_LINES];
+    char lines[MAX_LINES][MAX_LINE_LENGTH];
     int lineCount = 0;
 
     printf("Enter the file name: ");
     scanf("%s", filename);
-    
+
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
         printf("Error: Unable to open the file\n");
-        exit(1);
+        return 1;
     }
 
-    char buffer[MAX_LINE_LENGTH];
-    while (fgets(buffer, sizeof(buffer), file) != NULL) {
-        lines[lineCount] = (char *)malloc(strlen(buffer) + 1);
-        if (lines[lineCount] == NULL) {
-            printf("Memory allocation failed\n");
-            fclose(file);
-            exit(1);
-        }
-        strcpy(lines[lineCount], buffer);
+    while (fgets(lines[lineCount], sizeof(lines[lineCount]), file) != NULL) {
         lineCount++;
-
         if (lineCount >= MAX_LINES) {
             printf("Warning: Maximum number of lines exceeded\n");
             break;
@@ -39,11 +30,12 @@ int main() {
     fclose(file);
 
     for (int i = 0; i < lineCount - 1; i++) {
-        for (int j = i + 1; j < lineCount; j++) {
-            if (strcmp(lines[i], lines[j]) > 0) {
-                char *temp = lines[i];
-                lines[i] = lines[j];
-                lines[j] = temp;
+        for (int j = 0; j < lineCount - i - 1; j++) {
+            if (strcmp(lines[j], lines[j + 1]) > 0) {
+                char temp[MAX_LINE_LENGTH];
+                strcpy(temp, lines[j]);
+                strcpy(lines[j], lines[j + 1]);
+                strcpy(lines[j + 1], temp);
             }
         }
     }
@@ -51,12 +43,11 @@ int main() {
     file = fopen(filename, "w");
     if (file == NULL) {
         printf("Error: Unable to open the file for writing\n");
-        exit(1);
+        return 1;
     }
 
     for (int i = 0; i < lineCount; i++) {
         fputs(lines[i], file);
-        free(lines[i]);  
     }
 
     fclose(file);
