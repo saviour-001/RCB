@@ -30,13 +30,19 @@ int main() {
         printf("Enter your choice: ");
         scanf("%d", &choice);
 
+        int fullval;
+        sem_getvalue(&full,&fullval);
         if (choice == 1) {
-            pthread_create(&prodThread, NULL, producer, NULL);
-            pthread_join(prodThread, NULL);
+            if(fullval==BUFFER_SIZE){
+                printf("buffer full!!\n");
+            }
+            else{
+                pthread_create(&prodThread, NULL, producer, NULL);
+                pthread_join(prodThread, NULL);
+            }
         } else if (choice == 2) {
-            int fullValue;
-            sem_getvalue(&full, &fullValue); 
-            if (fullValue == 0) {
+
+            if (fullval == 0) {
                 printf("Buffer is empty!\n");
             } else {
                 pthread_create(&consThread, NULL, consumer, NULL);
@@ -87,5 +93,3 @@ void *consumer(void *arg) {
 
     return NULL;
 }
-
-
