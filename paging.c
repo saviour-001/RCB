@@ -1,89 +1,42 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAX_PAGES 10
-#define FRAME_COUNT 10
-
-struct PageTableEntry {
-    int frameNumber; 
-};
-
-struct PageTable {
-    struct PageTableEntry entries[MAX_PAGES];
-};
-
-void initializePageTable(struct PageTable *pt) {
-    for (int i = 0; i < MAX_PAGES; i++) {
-        pt->entries[i].frameNumber = -1;
-    }
-
-}
-
-void printPageTable(struct PageTable *pt) {
-    printf("\nPage Table:\n");
-    for (int i = 0; i < MAX_PAGES; i++) {
-        if (pt->entries[i].frameNumber != -1) {
-            printf("Page %d -> Frame %d\n", i, pt->entries[i].frameNumber);
-        }
-    }
-}
+#define PAGE_SIZE 4
 
 int main() {
-    int logicalAddress, pageNumber, offset, frameNumber, numPages;
-    int pageSize, memorySize;
-    struct PageTable pageTable;
+    int numberOfPages;
 
-    printf("Enter the page size (in number of words): ");
-    scanf("%d", &pageSize);
-    printf("Enter the total memory size (in number of words): ");
-    scanf("%d", &memorySize);
+    printf("Enter the number of pages: ");
+    scanf("%d", &numberOfPages);
 
-    initializePageTable(&pageTable);
+    int pageTable[numberOfPages];
 
-    printf("Enter the number of pages to map (max %d): ", MAX_PAGES);
-    scanf("%d", &numPages);
+    for (int i = 0; i < numberOfPages; i++) {
+        printf("Enter frame number for page %d: ", i);
+        scanf("%d", &pageTable[i]);
+    }
 
-    if (numPages > MAX_PAGES || numPages <= 0) {
-        printf("Invalid number of pages. Exiting.\n");
+    int logicalAddress;
 
+    printf("Enter a logical address: ");
+    scanf("%d", &logicalAddress);
+
+    int pageNumber = logicalAddress / PAGE_SIZE;
+    int offset = logicalAddress % PAGE_SIZE;
+
+    if (pageNumber >= numberOfPages) {
+        printf("Invalid logical address!\n");
         return 1;
     }
 
-    for (int i = 0; i < numPages; i++) {
-        printf("Enter frame number for Page %d (-1 if not mapped): ", i);
-        scanf("%d", &frameNumber);
-        pageTable.entries[i].frameNumber = frameNumber;
+    int frameNumber = pageTable[pageNumber];
+    int physicalAddress = frameNumber * PAGE_SIZE + offset;
 
-    }
+    printf("\nLogical Address: %d\n", logicalAddress);
+    printf("Page Number: %d\n", pageNumber);
+    printf("Frame Number: %d\n", frameNumber);
+    printf("Offset: %d\n", offset);
+    printf("Physical Address: %d\n", physicalAddress);
 
-    while (1) {
-        printf("\nEnter a logical address (-1 to exit): ");
-        scanf("%d", &logicalAddress);
-
-        if (logicalAddress == -1) {
-
-            break;
-        }
-
-        pageNumber = logicalAddress / pageSize;
-        offset = logicalAddress % pageSize;
-
-        printf("Logical address: %d, Page number: %d, Offset: %d\n", logicalAddress, pageNumber, offset);
-
-        if (pageNumber < 0 || pageNumber >= MAX_PAGES || offset < 0 || offset >= pageSize ||
-            pageTable.entries[pageNumber].frameNumber == -1) {
-            printf("Invalid logical address or page not mapped to a frame.\n");
- 
-            continue;
-        }
-
-        frameNumber = pageTable.entries[pageNumber].frameNumber;
-        int physicalAddress = frameNumber * pageSize + offset;
-        printf("Logical address %d maps to physical address %d\n",
-               logicalAddress, physicalAddress);
-        
-    }
-
-    printPageTable(&pageTable);
     return 0;
-}    
+}
