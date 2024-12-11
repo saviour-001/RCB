@@ -1,26 +1,39 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<ctype.h>
-int main(){
-    char file1[10],file2[10];
-    int count = 0;
-    printf("File name:");
-    scanf("%s",file1);  
-    FILE *f1 = fopen(file1, "r");
-    if(f1 == NULL)
-    {
-        printf("File not found");
-        return 1;
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+
+int main() {
+    char filename[100];
+    printf("Enter the file name: ");
+    scanf("%s", filename);
+
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        printf("Error: Unable to open the file\n");
+        exit(1);
     }
-    char ch,prev;
-    do{
-        ch = fgetc(f1);
-        if(isspace(ch)|| ch == '\n' || ch == '\t'|| prev == '.'){
-            count++;
-            prev = ch;
-            printf("%c\n",ch);
+
+    char ch;
+    int inWord = 0, wordCount = 0;
+
+    while ((ch = fgetc(file)) != EOF) {
+        if (isspace(ch) || ch == '\n' || ch == '\t') {
+            if (inWord) {
+                inWord = 0;
+                wordCount++;
+            }
+        } else {
+            inWord = 1;
         }
-    }while(ch != EOF);
-    printf("No. of words = %d",++count);
-    fclose(f1);
+    }
+
+    if (inWord) {
+        wordCount++;
+    }
+
+    fclose(file);
+
+    printf("Number of words in the file: %d\n", wordCount);
+
+    return 0;
 }
